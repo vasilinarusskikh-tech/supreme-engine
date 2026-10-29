@@ -1,0 +1,62 @@
+<!doctype html>
+<html lang="ru">
+<head>
+<meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Тихий день — ежедневник</title>
+<style>
+:root{font-family:system-ui,-apple-system,"Segoe UI",sans-serif;color:#293c32;background:#f7f4ee}*{box-sizing:border-box}body{margin:0}button,input,textarea{font:inherit}button{cursor:pointer}
+main{max-width:1050px;margin:auto;padding:24px 20px 55px}header{display:flex;justify-content:space-between;align-items:center;gap:12px;flex-wrap:wrap}.logo{font-weight:800;letter-spacing:.08em;color:#4f7561}.date{font-size:14px;color:#7b8279;background:white;padding:10px 15px;border-radius:30px}
+.hero{padding:45px 0 25px}.hero small{color:#99958a;text-transform:uppercase;letter-spacing:.08em}.hero h1{font:normal clamp(44px,7vw,75px)/1.03 Georgia,serif;letter-spacing:-.04em;margin:12px 0;color:#2f503d}.hero p{color:#7c837b;line-height:1.65}
+.grid{display:grid;grid-template-columns:1.55fr 1fr;gap:20px}.card{background:white;border:1px solid #eae6dd;border-radius:24px;padding:25px;box-shadow:0 9px 30px #3c46300b}h2{font:normal 29px Georgia,serif;margin:0 0 20px}.line{display:flex;gap:9px}input[type=text],textarea{background:#fcfbf8;border:1px solid #dedfd8;border-radius:12px;padding:13px 14px;width:100%;min-width:0;outline:0;color:#2a3c31}input:focus,textarea:focus{border-color:#729d83;box-shadow:0 0 0 3px #6c9b7c22}.add{border:0;border-radius:12px;background:#3d6550;color:white;padding:12px 18px;font-weight:700;white-space:nowrap}.add:hover{background:#2d503e}
+.filters{display:flex;gap:6px;margin:20px 0 8px;flex-wrap:wrap}.filter{border:0;border-radius:25px;background:transparent;padding:8px 12px;color:#90968c}.filter.selected{background:#e9f2e9;color:#366147;font-weight:700}ul{list-style:none;padding:0;margin:0}.task{display:flex;align-items:center;gap:11px;padding:15px 3px;border-bottom:1px solid #f0f0ec}.task:last-child{border:0}.task input{width:19px;height:19px;accent-color:#4e8060}.task span{flex:1;overflow-wrap:anywhere}.task.done span{color:#a1a69f;text-decoration:line-through}.remove{border:0;background:none;font-size:24px;color:#a5ada5;padding:0 8px}.remove:hover{color:#bc655d}.empty{padding:34px 0;text-align:center;color:#92998f}
+.track{height:8px;background:#eaf0e8;border-radius:20px;overflow:hidden;margin-top:20px}.track div{height:100%;background:#85ab8b;width:0;transition:width .2s}.stats{display:flex;justify-content:space-between;color:#8b968a;font-size:13px;margin-top:9px}
+textarea{height:220px;resize:vertical;line-height:1.65}.status{font-size:12px;color:#719079;margin-top:10px;min-height:20px}.tip{margin-top:20px;background:#edf3ea;color:#5d795f;border-radius:20px;padding:21px;line-height:1.65}.tip b{display:block;color:#3d6549}
+footer{color:#999b94;font-size:12px;line-height:1.7;margin-top:28px}.tools{display:flex;gap:8px;flex-wrap:wrap;margin-top:12px}.tools button{border:1px solid #dbe1d8;border-radius:10px;background:white;color:#4f6c58;padding:9px 12px}
+@media(max-width:760px){.grid{grid-template-columns:1fr}.hero{padding-top:30px}.card{padding:19px}.line{flex-wrap:wrap}.add{width:100%}}
+</style>
+</head>
+<body>
+<main>
+<header><div class="logo">✳ ТИХИЙ ДЕНЬ</div><div id="date" class="date"></div></header>
+<section class="hero"><small>Место для мыслей и планов</small><h1>Один день<br>за раз.</h1><p>Запиши важное, отметь сделанное и оставь место для вдохновения.</p></section>
+<div class="grid">
+<section class="card" aria-labelledby="tasks-title"><h2 id="tasks-title">Мои задачи</h2>
+<form id="task-form" class="line"><input type="text" id="task-input" maxlength="200" placeholder="Что хочется сделать?" aria-label="Новая задача" required><button class="add" type="submit">+ Добавить</button></form>
+<div class="filters"><button type="button" class="filter selected" data-filter="all">Все</button><button type="button" class="filter" data-filter="active">В планах</button><button type="button" class="filter" data-filter="done">Готово</button></div>
+<ul id="tasks"></ul><div class="empty" id="empty">Пока задач нет. Начни с одной небольшой ✨</div>
+<div class="track" id="progress" role="progressbar" aria-label="Прогресс" aria-valuemin="0" aria-valuemax="100" aria-valuenow="0"><div id="bar"></div></div>
+<div class="stats"><span id="count">0 задач</span><span id="percent">0%</span></div>
+</section>
+<aside><section class="card"><h2>Мои заметки</h2><textarea id="notes" placeholder="Идеи, мысли, что-то хорошее за сегодня…" aria-label="Заметки"></textarea><div class="status" id="status" aria-live="polite">Сохраняется автоматически</div></section>
+<div class="tip"><b>🌿 Маленькое напоминание</b>Не обязательно успевать всё. Даже один завершённый пункт — уже движение вперёд.</div></aside>
+</div>
+<footer>Все записи хранятся только в браузере на этом устройстве. При очистке данных браузера они могут исчезнуть.
+<div class="tools"><button type="button" id="export">↓ Скачать копию</button><button type="button" id="import">↑ Восстановить копию</button><input type="file" id="backup" accept=".json,application/json" hidden></div></footer>
+</main>
+<script>
+(()=>{
+"use strict";
+const KEY="quiet-day-v1",$=id=>document.getElementById(id);let data={tasks:[],notes:""},filter="all";
+try{const x=JSON.parse(localStorage.getItem(KEY));if(x&&Array.isArray(x.tasks)&&typeof x.notes==="string")data={tasks:x.tasks.filter(valid).slice(0,2000),notes:x.notes.slice(0,50000)}}catch{}
+function valid(t){return t&&typeof t.id==="string"&&typeof t.text==="string"&&t.text.length<=200&&typeof t.done==="boolean"}
+function save(){try{localStorage.setItem(KEY,JSON.stringify(data));$("status").textContent="✓ Сохранено на этом устройстве"}catch{$("status").textContent="Не удалось сохранить — скачай копию"}}
+function render(){
+const list=$("tasks");list.replaceChildren();const visible=data.tasks.filter(t=>filter==="all"||(filter==="done"?t.done:!t.done));
+for(const t of visible){const li=document.createElement("li");li.className="task"+(t.done?" done":"");
+const cb=document.createElement("input");cb.type="checkbox";cb.checked=t.done;cb.setAttribute("aria-label","Готово: "+t.text);cb.onchange=()=>{t.done=cb.checked;save();render()};
+const span=document.createElement("span");span.textContent=t.text;
+const del=document.createElement("button");del.type="button";del.className="remove";del.textContent="×";del.setAttribute("aria-label","Удалить: "+t.text);del.onclick=()=>{data.tasks=data.tasks.filter(x=>x.id!==t.id);save();render()};
+li.append(cb,span,del);list.append(li)}
+$("empty").hidden=visible.length>0;$("empty").textContent=data.tasks.length?"В этом разделе пока пусто.":"Пока задач нет. Начни с одной небольшой ✨";
+const done=data.tasks.filter(t=>t.done).length,total=data.tasks.length,p=total?Math.round(done*100/total):0;$("count").textContent=done+" из "+total+" выполнено";$("percent").textContent=p+"%";$("bar").style.width=p+"%";$("progress").setAttribute("aria-valuenow",p)
+}
+$("date").textContent=new Intl.DateTimeFormat("ru-RU",{weekday:"long",day:"numeric",month:"long"}).format(new Date());
+$("notes").value=data.notes;$("notes").oninput=()=>{data.notes=$("notes").value;save()};
+$("task-form").onsubmit=e=>{e.preventDefault();const input=$("task-input"),text=input.value.trim();if(!text)return;data.tasks.unshift({id:globalThis.crypto?.randomUUID?.()||Date.now()+"-"+Math.random(),text,done:false});input.value="";save();render();input.focus()};
+document.querySelectorAll("[data-filter]").forEach(b=>b.onclick=()=>{filter=b.dataset.filter;document.querySelectorAll("[data-filter]").forEach(x=>x.classList.toggle("selected",x===b));render()});
+$("export").onclick=()=>{const url=URL.createObjectURL(new Blob([JSON.stringify(data,null,2)],{type:"application/json"}));const a=document.createElement("a");a.href=url;a.download="tihiy-den-backup.json";a.click();setTimeout(()=>URL.revokeObjectURL(url),1000)};
+$("import").onclick=()=>$("backup").click();$("backup").onchange=async e=>{const file=e.target.files[0];if(!file)return;try{if(file.size>1000000)throw Error();const x=JSON.parse(await file.text());if(!x||!Array.isArray(x.tasks)||x.tasks.length>2000||!x.tasks.every(valid)||typeof x.notes!=="string"||x.notes.length>50000)throw Error();if(!confirm("Заменить текущие записи резервной копией?"))return;data={tasks:x.tasks,notes:x.notes};$("notes").value=data.notes;save();render();alert("Копия восстановлена!")}catch{alert("Не удалось прочитать резервную копию.")}finally{e.target.value=""}};
+render()
+})();
+</script>
+</body></html>
